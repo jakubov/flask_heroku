@@ -37,9 +37,11 @@ class WeatherRequests(db.Model):
     __tablename__ = "weather_requests"
     id = db.Column(db.Integer, primary_key=True)
     zip_code = db.Column(db.String(10))
+    temperture = db.Column(db.Integer())
 
-    def __init__(self, zip_code):
+    def __init__(self, zip_code, temperture):
         self.zip_code = zip_code
+        self.temperture = temperture
 
     def __repr__(self):
         return '<zip_code %r>' % self.zip_code
@@ -73,7 +75,7 @@ def get_temps():
                 current_temp = get_location_temperture(address_dict['zip_code'])
 
                 if not db.session.query(WeatherRequests).filter(WeatherRequests.zip_code == zip_code).count():
-                    w_req = WeatherRequests(zip_code)
+                    w_req = WeatherRequests(zip_code, current_temp)
                     db.session.add(w_req)
                     db.session.commit()
 
