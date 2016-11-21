@@ -18,7 +18,7 @@
                 base_url = "http://127.0.0.1:5000/home/?";
             }
             else{
-                base_url = "https://obscure-cove-65098.herokuapp.com/?"
+                base_url = "https://obscure-cove-65098.herokuapp.com/home/?"
             }
             $.ajax({url: base_url + address, success: function(result){
                 var obj = JSON.parse(result);
