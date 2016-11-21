@@ -33,17 +33,16 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
 db = SQLAlchemy(app)
 
 
-class User(db.Model):
+class WeatherRequests(db.Model):
+    __tablename__ = "weather_requests"
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True)
-    email = db.Column(db.String(120), unique=True)
+    zip_code = db.Column(db.String(10))
 
-    def __init__(self, username, email):
-        self.username = username
-        self.email = email
+    def __init__(self, zip_code):
+        self.zip_code = zip_code
 
     def __repr__(self):
-        return '<User %r>' % self.username
+        return '<zip_code %r>' % self.zip_code
 
 
 @app.route('/')
@@ -70,7 +69,14 @@ def get_temps():
         if address_data:
             if len(address_data) == 1:
                 address_dict = address_data[0]
+                zip_code = address_dict['zip_code']
                 current_temp = get_location_temperture(address_dict['zip_code'])
+
+                if not db.session.query(WeatherRequests).filter(WeatherRequests.zip_code == zip_code).count():
+                    w_req = WeatherRequests(zip_code)
+                    db.session.add(w_req)
+                    db.session.commit()
+
                 address_dict['temp'] = current_temp
                 temps_response['data'] = address_dict
                 temps_response['status'] = 'success'
