@@ -3,6 +3,8 @@
 # ----------------------
 flask
 requests
+psycopg2
+Flask-SQLAlchemy
 
 
 # ----------------------
