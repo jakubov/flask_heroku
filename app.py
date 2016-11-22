@@ -133,6 +133,19 @@ def get_temps():
                         temperature_response['data'] = address_dict
                         temperature_response['status'] = 'success'
                         return json.dumps(temperature_response)
+                    else:
+                        # zip codes exists but an hour lapsed - get updated current temp
+                        current_temp = get_location_temperture(zip_code)
+                        current_time = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+
+                        res.temperature = current_temp
+                        res.created_at = current_time
+                        db.session.commit()
+
+                        address_dict['temp'] = current_temp
+                        temperature_response['data'] = address_dict
+                        temperature_response['status'] = 'success'
+                        return json.dumps(temperature_response)
                 else:
                     current_temp = get_location_temperture(zip_code)
                     current_time = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
