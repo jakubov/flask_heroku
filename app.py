@@ -7,6 +7,7 @@ This file creates your application.
 """
 
 import os
+import sys
 import requests
 import json
 import re
@@ -19,6 +20,9 @@ from flask_sqlalchemy import SQLAlchemy
 
 
 app = Flask(__name__)
+
+app.logger.addHandler(logging.StreamHandler(sys.stdout))
+app.logger.setLevel(logging.ERROR)
 
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'this_should_be_configured')
 
