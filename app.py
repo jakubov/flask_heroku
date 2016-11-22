@@ -118,18 +118,34 @@ def get_temps():
             if len(address_data) == 1:
                 address_dict = address_data[0]
                 zip_code = address_dict['zip_code']
-                current_temp = get_location_temperture(zip_code)
-                current_time = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
-                location = address_dict['city'] + ',' + address_dict['state']
-                # if not db.session.query(WeatherRequests).filter(WeatherRequests.zip_code == zip_code).count():
-                w_req = WeatherRequests(zip_code, current_temp, location, current_time)
-                db.session.add(w_req)
-                db.session.commit()
+                res = db.session.query(WeatherRequests).filter(WeatherRequests.zip_code == zip_code).first()
+                if res:
+                    current_temp = res.temperature
+                    location = res.location.split(',')
+                    address_dict['city'] = location[0]
+                    address_dict['state'] = location[1]
 
-                address_dict['temp'] = current_temp
-                temperature_response['data'] = address_dict
-                temperature_response['status'] = 'success'
-                return json.dumps(temperature_response)
+                    current_time = datetime.datetime.utcnow()
+                    created_at = datetime.datetime.strptime(str(res.created_at), '%Y-%m-%d %H:%M:%S')
+                    diff = current_time - created_at
+                    if diff < timedelta(minutes=6):
+                        address_dict['temp'] = current_temp
+                        temperature_response['data'] = address_dict
+                        temperature_response['status'] = 'success'
+                        return json.dumps(temperature_response)
+                else:
+                    current_temp = get_location_temperture(zip_code)
+                    current_time = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+                    location = address_dict['city'] + ',' + address_dict['state']
+                    # if not db.session.query(WeatherRequests).filter(WeatherRequests.zip_code == zip_code).count():
+                    w_req = WeatherRequests(zip_code, current_temp, location, current_time)
+                    db.session.add(w_req)
+                    db.session.commit()
+
+                    address_dict['temp'] = current_temp
+                    temperature_response['data'] = address_dict
+                    temperature_response['status'] = 'success'
+                    return json.dumps(temperature_response)
             else:
                 temperature_response['status'] = 'failure'
                 temperature_response['reason'] = 'found multiple locations'
