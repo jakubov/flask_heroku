@@ -132,7 +132,7 @@ def get_temps():
                 return json.dumps(temperature_response)
             else:
                 temperature_response['status'] = 'failure'
-                temperature_response['reason'] = 'multiple locations'
+                temperature_response['reason'] = 'found multiple locations'
                 return json.dumps(temperature_response)
         else:
             temperature_response['status'] = 'failure'
@@ -155,9 +155,11 @@ def get_address_zipcode(address):
 
         for result in results:
             formatted_address = result['formatted_address']
+            reg = re.compile('\d{5}')
+            regex_result = reg.findall(formatted_address)
             formatted_address_split = formatted_address.split(",")
 
-            if len(formatted_address_split) < 3:
+            if len(formatted_address_split) < 3 or not regex_result:
                 continue
             if len(formatted_address_split) == 4:
                 city = formatted_address_split[1].strip()
