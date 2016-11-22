@@ -151,7 +151,6 @@ def get_address_zipcode(address):
     address_payload = []
     if json_results['status'] == 'OK':
         results = json_results['results']
-        address_response = {}
         address_data = {}
 
         for result in results:
