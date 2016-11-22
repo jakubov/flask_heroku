@@ -12,6 +12,7 @@ import json
 import re
 import datetime
 from datetime import timedelta
+import logging
 
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
@@ -64,7 +65,7 @@ def get_temps():
     temperature_response = {}
     if request.query_string:
         address = request.query_string
-
+        logging.info('got address {}'.format(address))
         address_dict = {}
         zip_code = None
         address_data = None
