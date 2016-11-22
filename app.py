@@ -69,7 +69,7 @@ def home():
 def get_temps():
     temperature_response = {}
     if request.query_string:
-        address = request.query_string
+        address = request.query_string.strip()
         logging.info('*** got address {}'.format(address))
         address_dict = {}
         zip_code = None
@@ -80,6 +80,7 @@ def get_temps():
         regex_result = reg.findall(address)
         if regex_result:
             zip_code = regex_result[0]
+            logging.info('*** got zip code {}'.format(zip_code))
             res = db.session.query(WeatherRequests).filter(WeatherRequests.zip_code == zip_code).first()
             if res:
                 current_temp = res.temperature
