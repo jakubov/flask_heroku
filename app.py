@@ -22,7 +22,7 @@ from flask_sqlalchemy import SQLAlchemy
 app = Flask(__name__)
 
 app.logger.addHandler(logging.StreamHandler(sys.stdout))
-app.logger.setLevel(logging.ERROR)
+app.logger.setLevel(logging.INFO)
 
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'this_should_be_configured')
 
@@ -69,7 +69,7 @@ def get_temps():
     temperature_response = {}
     if request.query_string:
         address = request.query_string
-        logging.info('got address {}'.format(address))
+        logging.info('*** got address {}'.format(address))
         address_dict = {}
         zip_code = None
         address_data = None
