@@ -84,7 +84,7 @@ def get_temps():
             res = db.session.query(WeatherRequests).filter(WeatherRequests.zip_code == zip_code).first()
             if res:
                 current_temp = res.temperature
-                location = res.location.split()
+                location = res.location.split(',')
                 address_dict['city'] = location[0]
                 address_dict['state'] = location[1]
 
@@ -120,7 +120,7 @@ def get_temps():
                 zip_code = address_dict['zip_code']
                 current_temp = get_location_temperture(zip_code)
                 current_time = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
-                location = address_dict['city'] + ' ' + address_dict['state']
+                location = address_dict['city'] + ',' + address_dict['state']
                 # if not db.session.query(WeatherRequests).filter(WeatherRequests.zip_code == zip_code).count():
                 w_req = WeatherRequests(zip_code, current_temp, location, current_time)
                 db.session.add(w_req)
