@@ -1,9 +1,5 @@
 """
-Flask Documentation:     http://flask.pocoo.org/docs/
-Jinja2 Documentation:    http://jinja.pocoo.org/2/documentation/
-Werkzeug Documentation:  http://werkzeug.pocoo.org/documentation/
-
-This file creates your application.
+Loadsmart Weather app
 """
 
 import os
@@ -27,12 +23,7 @@ app.logger.setLevel(logging.INFO)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'this_should_be_configured')
 
 
-###
-# Routing for your application.
-###
-
 GOOGLE_MAPS_API_KEY = 'AIzaSyC6bDMjMQNBGGu_FS95DUpXNC4ppyxWhug'
-
 GOOGLE_MAPS_API_BASE_URL = 'https://maps.googleapis.com/maps/api/geocode/json'
 
 OPENWEATHERMAP_BASE_URL = 'http://api.openweathermap.org/data/2.5/weather'
@@ -65,8 +56,8 @@ def home():
     return render_template('loadsmart_ui.html')
 
 
-@app.route('/home/', methods=["GET"])
-def get_temps():
+@app.route('/api/temperature/', methods=["GET"])
+def get_temperature():
     temperature_response = {}
     if request.query_string:
         address = request.query_string.strip()
@@ -80,7 +71,8 @@ def get_temps():
         regex_result = reg.findall(address)
         if regex_result:
             zip_code = regex_result[0]
-            logging.info('*** got zip code {}'.format(zip_code))
+
+            # first to a table look up for the zip code
             res = db.session.query(WeatherRequests).filter(WeatherRequests.zip_code == zip_code).first()
             if res:
                 current_temp = res.temperature
@@ -91,14 +83,15 @@ def get_temps():
                 current_time = datetime.datetime.utcnow()
                 created_at = datetime.datetime.strptime(str(res.created_at), '%Y-%m-%d %H:%M:%S')
                 diff = current_time - created_at
-                if diff < timedelta(minutes=6):
+                # if request was made less than 1 hour, then return the temperature
+                if diff < timedelta(minutes=60):
                     address_dict['temp'] = current_temp
                     temperature_response['data'] = address_dict
                     temperature_response['status'] = 'success'
                     return json.dumps(temperature_response)
                 else:
-                    # zip codes exists but an hour lapsed - get updated current temp
-                    current_temp = get_location_temperture(zip_code)
+                    # else get updated temperature
+                    current_temp = get_location_temperature(zip_code)
                     current_time = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
 
                     res.temperature = current_temp
@@ -110,11 +103,14 @@ def get_temps():
                     temperature_response['status'] = 'success'
                     return json.dumps(temperature_response)
             else:
+                # do an address-zip code lookup
                 address_data = get_address_zipcode(zip_code)
         else:
+            # query string does not contain a zip code, so do an address-zip code lookup
             address_data = get_address_zipcode(address)
 
         if address_data:
+            # to keep the UI and app simple, will only handle query that return single address
             if len(address_data) == 1:
                 address_dict = address_data[0]
                 zip_code = address_dict['zip_code']
@@ -128,14 +124,14 @@ def get_temps():
                     current_time = datetime.datetime.utcnow()
                     created_at = datetime.datetime.strptime(str(res.created_at), '%Y-%m-%d %H:%M:%S')
                     diff = current_time - created_at
-                    if diff < timedelta(minutes=6):
+                    if diff < timedelta(minutes=60):
                         address_dict['temp'] = current_temp
                         temperature_response['data'] = address_dict
                         temperature_response['status'] = 'success'
                         return json.dumps(temperature_response)
                     else:
                         # zip codes exists but an hour lapsed - get updated current temp
-                        current_temp = get_location_temperture(zip_code)
+                        current_temp = get_location_temperature(zip_code)
                         current_time = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
 
                         res.temperature = current_temp
@@ -147,10 +143,9 @@ def get_temps():
                         temperature_response['status'] = 'success'
                         return json.dumps(temperature_response)
                 else:
-                    current_temp = get_location_temperture(zip_code)
+                    current_temp = get_location_temperature(zip_code)
                     current_time = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
                     location = address_dict['city'] + ',' + address_dict['state']
-                    # if not db.session.query(WeatherRequests).filter(WeatherRequests.zip_code == zip_code).count():
                     w_req = WeatherRequests(zip_code, current_temp, location, current_time)
                     db.session.add(w_req)
                     db.session.commit()
@@ -160,6 +155,7 @@ def get_temps():
                     temperature_response['status'] = 'success'
                     return json.dumps(temperature_response)
             else:
+                # result returned multiple addresses, tell user to modify search
                 temperature_response['status'] = 'failure'
                 temperature_response['reason'] = 'found multiple locations'
                 return json.dumps(temperature_response)
@@ -207,7 +203,7 @@ def get_address_zipcode(address):
     return address_payload
 
 
-def get_location_temperture(zip_code):
+def get_location_temperature(zip_code):
     url = OPENWEATHERMAP_BASE_URL + '?zip=' + zip_code + ', us' + '&appid=' + OPENWEATHERMAP_API_KEY
     r = requests.get(url)
     json_results = r.json()
@@ -219,12 +215,6 @@ def get_location_temperture(zip_code):
 # def home():
 #     """Render website's home page."""
 #     return render_template('home.html')
-
-
-@app.route('/about/')
-def about():
-    """Render the website's about page."""
-    return render_template('about.html')
 
 
 ###

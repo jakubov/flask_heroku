@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""Tests for the Flask Heroku template."""
+"""Tests for the LS Weather app"""
 
 import unittest
 from app import app
@@ -29,8 +29,8 @@ class TestApp(unittest.TestCase):
         rv = self.app.get('/i-am-not-found/')
         self.assertEqual(rv.status_code, 404)
 
-    def test_static_text_file_request(self):
-        rv = self.app.get('/robots.txt')
+    def test_static_image_file_request(self):
+        rv = self.app.get('/loadsmartV2.svg')
         self.assertTrue(rv.data)
         self.assertEqual(rv.status_code, 200)
         rv.close()

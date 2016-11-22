@@ -15,10 +15,10 @@
             var address = $( "#address" ).val();
             var base_url = location.hostname;
             if (base_url == 'localhost'){
-                base_url = "http://localhost:5000/home/?";
+                base_url = "http://localhost:5000/api/temperature/?";
             }
             else{
-                base_url = "https://obscure-cove-65098.herokuapp.com/home/?";
+                base_url = "https://obscure-cove-65098.herokuapp.com/api/temperature/?";
             }
             $.ajax({url: base_url + address, success: function(result){
                 var obj = JSON.parse(result);
@@ -28,11 +28,11 @@
                     state = obj['data']['state']
                     temperture += " <sup>o</sup> F"
                     $("#lbl-city-state").html(city + ", " + state + "<br>" + temperture);
-                    $('#lbl-city-state').css('box-shadow', '10px 20px 30px lightblue');
+                    $('#lbl-city-state').css('box-shadow', '10px 20px 30px lightgreen');
                 }
                 else{
                    $("#lbl-city-state").html(obj['reason'] + '.<br>please modify search query');
-                   $('#lbl-city-state').css('box-shadow', '10px 20px 30px lightblue');
+                   $('#lbl-city-state').css('box-shadow', '10px 20px 30px lightgreen');
                 }
             }});
         });
