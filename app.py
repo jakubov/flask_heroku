@@ -88,10 +88,9 @@ def get_temps():
                 address_dict['city'] = location[0]
                 address_dict['state'] = location[1]
 
-                created_at = res.created_at
                 current_time = datetime.datetime.utcnow()
-                dt = datetime.datetime.strptime(created_at, '%Y-%m-%d %H:%M:%S')
-                diff = current_time - dt
+                created_at = datetime.datetime.strptime(str(res.created_at), '%Y-%m-%d %H:%M:%S')
+                diff = current_time - created_at
                 if diff < timedelta(minutes=6):
                     address_dict['temp'] = current_temp
                     temperature_response['data'] = address_dict
