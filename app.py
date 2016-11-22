@@ -156,11 +156,18 @@ def get_address_zipcode(address):
         for result in results:
             formatted_address = result['formatted_address']
             formatted_address_split = formatted_address.split(",")
-            if len(formatted_address_split) < 4:
+
+            if len(formatted_address_split) < 3:
                 continue
-            city = formatted_address_split[1].strip()
-            state = formatted_address_split[2].strip().split(" ")[0]
-            zip_code = formatted_address_split[2].strip().split(" ")[1]
+            if len(formatted_address_split) == 4:
+                city = formatted_address_split[1].strip()
+                state = formatted_address_split[2].strip().split(" ")[0]
+                zip_code = formatted_address_split[2].strip().split(" ")[1]
+            if len(formatted_address_split) == 3:
+                city = formatted_address_split[0].strip()
+                state = formatted_address_split[1].strip().split(" ")[0]
+                zip_code = formatted_address_split[1].strip().split(" ")[1]
+
             address_data['formatted_address'] = formatted_address
             address_data['city'] = city
             address_data['state'] = state
