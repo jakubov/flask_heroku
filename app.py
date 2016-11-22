@@ -84,7 +84,7 @@ def get_temps():
             res = db.session.query(WeatherRequests).filter(WeatherRequests.zip_code == zip_code).first()
             if res:
                 current_temp = res.temperature
-                location = res.location
+                location = res.location.split()
                 address_dict['city'] = location[0]
                 address_dict['state'] = location[1]
 
