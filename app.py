@@ -9,6 +9,10 @@ This file creates your application.
 import os
 import requests
 import json
+import re
+import datetime
+from datetime import timedelta
+
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 
@@ -37,11 +41,14 @@ class WeatherRequests(db.Model):
     __tablename__ = "weather_requests"
     id = db.Column(db.Integer, primary_key=True)
     zip_code = db.Column(db.String(10))
-    temperture = db.Column(db.Integer())
+    location = db.Column(db.String(100))
+    temperature = db.Column(db.Integer())
+    timestamp = db.Column(db.DateTime())
 
-    def __init__(self, zip_code, temperture):
+    def __init__(self, zip_code, temperature, location):
         self.zip_code = zip_code
-        self.temperture = temperture
+        self.temperature = temperature
+        self.location = location
 
     def __repr__(self):
         return '<zip_code %r>' % self.zip_code
@@ -52,52 +59,82 @@ def home():
     return render_template('loadsmart_ui.html')
 
 
-@app.route('/home/')
+@app.route('/home/', methods=["GET"])
 def get_temps():
-    temps_response = {}
+    temperature_response = {}
     if request.query_string:
-        print request.query_string
         address = request.query_string
-        # address = '4031 18th ave'
-        # address = '4031 18th ave'
-        # address = '1600 Amphitheatre Parkway Mountain View CA'
-        # address = '1600 Amphitheatre Parkway Mountain View'
-        # address = '1600 Amphitheatre Parkway'
-        # address = '48 east 22nd street'
-
 
         address_dict = {}
-        address_data = get_address_zipcode(address)
+        zip_code = None
+        address_data = None
+
+        # parse search string for a zip code
+        reg = re.compile('\d{5}')
+        regex_result = reg.findall(address)
+        if regex_result:
+            zip_code = regex_result[0]
+            res = db.session.query(WeatherRequests).filter(WeatherRequests.zip_code == zip_code).first()
+            if res:
+                current_temp = res.temperature
+                location = res.location
+                address_dict['city'] = location[0]
+                address_dict['state'] = location[1]
+
+                timestamp = res.timestamp
+                current_time = datetime.datetime.utcnow()
+                dt = datetime.datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
+                diff = current_time - dt
+                if diff < timedelta(minutes=6):
+                    address_dict['temp'] = current_temp
+                    temperature_response['data'] = address_dict
+                    temperature_response['status'] = 'success'
+                    return json.dumps(temperature_response)
+                else:
+                    # zip codes exists but an hour lapsed - get updated current temp
+                    current_temp = get_location_temperture(zip_code)
+                    current_time = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+
+                    res.temperature = current_temp
+                    res.timestamp = current_time
+                    db.session.commit()
+
+                    address_dict['temp'] = current_temp
+                    temperature_response['data'] = address_dict
+                    temperature_response['status'] = 'success'
+                    return json.dumps(temperature_response)
+            else:
+                address_data = get_address_zipcode(zip_code)
+        else:
+            address_data = get_address_zipcode(address)
+
         if address_data:
             if len(address_data) == 1:
                 address_dict = address_data[0]
                 zip_code = address_dict['zip_code']
-                current_temp = get_location_temperture(address_dict['zip_code'])
-
+                current_temp = get_location_temperture(zip_code)
+                location = address_dict['city'] + ' ' + address_dict['state']
                 if not db.session.query(WeatherRequests).filter(WeatherRequests.zip_code == zip_code).count():
-                    w_req = WeatherRequests(zip_code, current_temp)
+                    w_req = WeatherRequests(zip_code, current_temp, location)
                     db.session.add(w_req)
                     db.session.commit()
 
-                address_dict['temp'] = current_temp
-                temps_response['data'] = address_dict
-                temps_response['status'] = 'success'
-                return json.dumps(temps_response)
-                # return 'Hello! Current Temperture in {}, {} is {} degrees'.format(address_temp_response['city'],
-                #                                                                   address_temp_response['state'],
-                #                                                                   current_temp)
+                    address_dict['temp'] = current_temp
+                    temperature_response['data'] = address_dict
+                    temperature_response['status'] = 'success'
+                    return json.dumps(temperature_response)
+                else:
+                    temperature_response['status'] = 'failure'
+                    temperature_response['reason'] = 'multiple locations'
+                    return json.dumps(temperature_response)
             else:
-                temps_response['status'] = 'failure'
-                temps_response['reason'] = 'multiple locations'
-                return json.dumps(temps_response)
-        else:
-            temps_response['status'] = 'failure'
-            temps_response['reason'] = 'no results found'
-            return json.dumps(temps_response)
+                temperature_response['status'] = 'failure'
+                temperature_response['reason'] = 'no results found'
+                return json.dumps(temperature_response)
     else:
-        temps_response['status'] = 'failure'
-        temps_response['reason'] = 'invalid query'
-        return temps_response
+        temperature_response['status'] = 'failure'
+        temperature_response['reason'] = 'invalid query'
+        return temperature_response
 
 
 def get_address_zipcode(address):
