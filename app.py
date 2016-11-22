@@ -124,14 +124,14 @@ def get_temps():
                     temperature_response['data'] = address_dict
                     temperature_response['status'] = 'success'
                     return json.dumps(temperature_response)
-                else:
-                    temperature_response['status'] = 'failure'
-                    temperature_response['reason'] = 'multiple locations'
-                    return json.dumps(temperature_response)
             else:
                 temperature_response['status'] = 'failure'
-                temperature_response['reason'] = 'no results found'
+                temperature_response['reason'] = 'multiple locations'
                 return json.dumps(temperature_response)
+        else:
+            temperature_response['status'] = 'failure'
+            temperature_response['reason'] = 'no results found'
+            return json.dumps(temperature_response)
     else:
         temperature_response['status'] = 'failure'
         temperature_response['reason'] = 'invalid query'
