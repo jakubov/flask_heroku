@@ -48,12 +48,13 @@ class WeatherRequests(db.Model):
     zip_code = db.Column(db.String(10))
     location = db.Column(db.String(100))
     temperature = db.Column(db.Integer())
-    timestamp = db.Column(db.DateTime())
+    created_at = db.Column(db.DateTime())
 
-    def __init__(self, zip_code, temperature, location):
+    def __init__(self, zip_code, temperature, location, created_at):
         self.zip_code = zip_code
         self.temperature = temperature
         self.location = location
+        self.created_at = created_at
 
     def __repr__(self):
         return '<zip_code %r>' % self.zip_code
@@ -86,9 +87,9 @@ def get_temps():
                 address_dict['city'] = location[0]
                 address_dict['state'] = location[1]
 
-                timestamp = res.timestamp
+                created_at = res.created_at
                 current_time = datetime.datetime.utcnow()
-                dt = datetime.datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
+                dt = datetime.datetime.strptime(created_at, '%Y-%m-%d %H:%M:%S')
                 diff = current_time - dt
                 if diff < timedelta(minutes=6):
                     address_dict['temp'] = current_temp
@@ -101,7 +102,7 @@ def get_temps():
                     current_time = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
 
                     res.temperature = current_temp
-                    res.timestamp = current_time
+                    res.created_at = current_time
                     db.session.commit()
 
                     address_dict['temp'] = current_temp
