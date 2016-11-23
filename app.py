@@ -207,16 +207,16 @@ def get_temperature():
 def get_all_ip_addresses_app_usage():
     temperature_response = {}
     usage_list = []
-    usage_dict = {}
+
     for result in db.session.query(WeatherRequestsTracker).all():
         _res = result.__dict__
         ip_address = _res['ip_address']
         count = db.session.query(WeatherRequestsTracker).filter(
             WeatherRequestsTracker.ip_address == ip_address).count()
-
-        if ip_address not in usage_dict:
-            usage_dict['ip_address'] = ip_address
-            usage_dict['total'] = str(count)
+        usage_dict = {}
+        usage_dict['ip_address'] = ip_address
+        usage_dict['total'] = str(count)
+        if not any(d['ip_address'] == ip_address for d in usage_list):
             usage_list.append(usage_dict)
 
     temperature_response['data'] = usage_list
