@@ -214,9 +214,10 @@ def get_all_ip_addresses_app_usage():
             WeatherRequestsTracker.ip_address == ip_address).count()
 
         usage_dict = {}
-        usage_dict['ip_address'] = _res['ip_address']
-        usage_dict['total'] = str(count)
-        usage_list.append(usage_dict)
+        if ip_address not in usage_dict:
+            usage_dict['ip_address'] = ip_address
+            usage_dict['total'] = str(count)
+            usage_list.append(usage_dict)
 
     temperature_response['data'] = usage_list
     temperature_response['total'] = len(usage_list)
