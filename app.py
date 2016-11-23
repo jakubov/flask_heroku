@@ -12,7 +12,7 @@ from datetime import timedelta
 import logging
 import random
 
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy
 
 
@@ -215,7 +215,8 @@ def get_ip_address_app_usage():
             usage_dict['created_at'] = str(result.created_at)
             usage_list.append(usage_dict)
     temperature_response['data'] = usage_list
-    return json.dumps(temperature_response)
+    temperature_response['data'] = {'total': len(results)}
+    return jsonify(temperature_response)
 
 
 def track_request_ip_address():
