@@ -214,8 +214,8 @@ def get_ip_address_app_usage():
             usage_dict['ip_address'] = result.ip_address
             usage_dict['created_at'] = str(result.created_at)
             usage_list.append(usage_dict)
+        usage_list.append({'total': len(results)})
     temperature_response['data'] = usage_list
-    temperature_response['data'] = {'total': len(results)}
     return jsonify(temperature_response)
 
 
