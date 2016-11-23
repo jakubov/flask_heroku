@@ -39,6 +39,7 @@ class WeatherRequests(db.Model):
     zip_code = db.Column(db.String(10))
     location = db.Column(db.String(100))
     temperature = db.Column(db.Integer())
+    ip_address = db.Column(db.String(50))
     created_at = db.Column(db.DateTime())
 
     def __init__(self, zip_code, temperature, location, created_at):
@@ -51,6 +52,19 @@ class WeatherRequests(db.Model):
         return '<zip_code %r>' % self.zip_code
 
 
+class WeatherRequestsTracker(db.Model):
+    __tablename__ = "weather_requests_ip_tracker"
+    id = db.Column(db.Integer, primary_key=True)
+    ip_address = db.Column(db.String(50))
+    created_at = db.Column(db.DateTime())
+
+    def __init__(self, zip_code, temperature, location, created_at):
+        self.zip_code = zip_code
+        self.temperature = temperature
+        self.location = location
+        self.created_at = created_at
+
+
 @app.route('/')
 def home():
     return render_template('loadsmart_ui.html')
@@ -60,6 +74,7 @@ def home():
 def get_temperature():
     temperature_response = {}
     if request.query_string:
+        track_request_ip_address()
         address = request.query_string.strip()
         logging.info('*** got address {}'.format(address))
         address_dict = {}
@@ -167,6 +182,13 @@ def get_temperature():
         temperature_response['status'] = 'failure'
         temperature_response['reason'] = 'invalid query'
         return temperature_response
+
+
+def track_request_ip_address():
+    current_time = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+    _req_tracker = WeatherRequestsTracker(request.remote_addr, current_time)
+    db.session.add(_req_tracker)
+    db.session.commit()
 
 
 def get_address_zipcode(address):
