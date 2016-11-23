@@ -203,6 +203,26 @@ def get_temperature():
         return temperature_response
 
 
+@app.route('/api/usage/', methods=["GET"])
+def get_all_ip_addresses_app_usage():
+    temperature_response = {}
+    usage_list = []
+    for result in db.session.query(WeatherRequestsTracker).all():
+        _res = result.__dict__
+        ip_address = _res['ip_address']
+        count = db.session.query(WeatherRequestsTracker).filter(
+            WeatherRequestsTracker.ip_address == ip_address).count()
+
+        usage_dict = {}
+        usage_dict['ip_address'] = _res['ip_address']
+        usage_dict['total'] = str(count)
+        usage_list.append(usage_dict)
+
+    temperature_response['data'] = usage_list
+    temperature_response['total'] = len(usage_list)
+    return jsonify(temperature_response)
+
+
 @app.route('/api/usage/<ip_address>', methods=["GET"])
 def get_ip_address_app_usage(ip_address):
     temperature_response = {}
