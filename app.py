@@ -207,10 +207,10 @@ def get_temperature():
 def get_all_ip_addresses_app_usage():
     temperature_response = {}
     usage_list = []
-
+    total = 0
     for result in db.session.query(WeatherRequestsTracker).all():
         _res = result.__dict__
-        total = 0
+
         ip_address = _res['ip_address']
         count = db.session.query(WeatherRequestsTracker).filter(
             WeatherRequestsTracker.ip_address == ip_address).count()
