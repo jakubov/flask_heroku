@@ -210,6 +210,7 @@ def get_all_ip_addresses_app_usage():
 
     for result in db.session.query(WeatherRequestsTracker).all():
         _res = result.__dict__
+        total = 0
         ip_address = _res['ip_address']
         count = db.session.query(WeatherRequestsTracker).filter(
             WeatherRequestsTracker.ip_address == ip_address).count()
@@ -217,10 +218,11 @@ def get_all_ip_addresses_app_usage():
         usage_dict['ip_address'] = ip_address
         usage_dict['total'] = str(count)
         if not any(d['ip_address'] == ip_address for d in usage_list):
+            total += count
             usage_list.append(usage_dict)
 
     temperature_response['data'] = usage_list
-    temperature_response['total'] = len(usage_list)
+    temperature_response['total'] = total
     return jsonify(temperature_response)
 
 
