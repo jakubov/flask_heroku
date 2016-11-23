@@ -49,6 +49,7 @@ fake_ip_addresses = ['192.0.2.1',
                      '192.0.2.14'
                      ]
 
+
 class WeatherRequests(db.Model):
     __tablename__ = "weather_requests"
     id = db.Column(db.Integer, primary_key=True)
@@ -58,7 +59,7 @@ class WeatherRequests(db.Model):
     ip_address = db.Column(db.String(50))
     created_at = db.Column(db.DateTime())
 
-    def __init__(self, zip_code, temperature, location, created_at, ip_address):
+    def __init__(self, zip_code, temperature, location, ip_address, created_at):
         self.zip_code = zip_code
         self.temperature = temperature
         self.location = location,
@@ -177,7 +178,7 @@ def get_temperature():
                     current_time = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
                     location = address_dict['city'] + ',' + address_dict['state']
                     w_req = WeatherRequests(zip_code, current_temp, location,
-                                            random.choice(fake_ip_addresses),current_time)
+                                            random.choice(fake_ip_addresses), current_time)
                     db.session.add(w_req)
                     db.session.commit()
 
