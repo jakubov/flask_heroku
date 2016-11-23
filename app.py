@@ -80,6 +80,8 @@ class WeatherRequestsTracker(db.Model):
         self.ip_address = ip_address
         self.created_at = created_at
 
+    def __repr__(self):
+        return '<ip_address %r>' % self.ip_address
 
 @app.route('/')
 def home():
@@ -210,7 +212,7 @@ def get_ip_address_app_usage():
     if results:
         for result in results:
             usage_dict['ip_address'] = result.ip_address
-            usage_dict['created_at'] = result.created_at
+            usage_dict['created_at'] = str(result.created_at)
             usage_list.append(usage_dict)
     temperature_response['data'] = usage_list
     return json.dumps(temperature_response)
