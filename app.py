@@ -201,6 +201,21 @@ def get_temperature():
         return temperature_response
 
 
+@app.route('/api/usage/', methods=["GET"])
+def get_ip_address_app_usage():
+    temperature_response = {}
+    usage_list = []
+    usage_dict = {}
+    results = db.session.query(WeatherRequestsTracker).all()
+    if results:
+        for result in results:
+            usage_dict['ip_address'] = result.ip_adress
+            usage_dict['created_at'] = result.created_at
+            usage_list.append(usage_dict)
+    temperature_response['data'] = usage_list
+    return json.dumps(temperature_response)
+
+
 def track_request_ip_address():
     current_time = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
     # request.remote_addr
