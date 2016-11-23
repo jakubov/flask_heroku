@@ -58,10 +58,8 @@ class WeatherRequestsTracker(db.Model):
     ip_address = db.Column(db.String(50))
     created_at = db.Column(db.DateTime())
 
-    def __init__(self, zip_code, temperature, location, created_at):
-        self.zip_code = zip_code
-        self.temperature = temperature
-        self.location = location
+    def __init__(self, ip_address, created_at):
+        self.ip_address = ip_address
         self.created_at = created_at
 
 
