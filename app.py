@@ -209,7 +209,7 @@ def get_ip_address_app_usage():
     results = db.session.query(WeatherRequestsTracker).all()
     if results:
         for result in results:
-            usage_dict['ip_address'] = result.ip_adress
+            usage_dict['ip_address'] = result.ip_address
             usage_dict['created_at'] = result.created_at
             usage_list.append(usage_dict)
     temperature_response['data'] = usage_list
