@@ -208,14 +208,15 @@ def get_ip_address_app_usage():
     temperature_response = {}
     usage_list = []
     usage_dict = {}
-    results = WeatherRequestsTracker.query.all()
-    if results:
-        for result in results:
-            usage_dict['ip_address'] = result.ip_address
-            usage_dict['created_at'] = str(result.created_at)
-            usage_list.append(usage_dict)
+    for result in db.session.query(WeatherRequestsTracker).all():
+        _res = result.__dict__
+
+        usage_dict['ip_address'] = _res['ip_address']
+        usage_dict['created_at'] = str(_res['created_at'])
+        usage_list.append(usage_dict)
+
     temperature_response['data'] = usage_list
-    temperature_response['total'] = len(results)
+    temperature_response['total'] = len(usage_list)
     return jsonify(temperature_response)
 
 
