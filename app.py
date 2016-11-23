@@ -10,6 +10,7 @@ import re
 import datetime
 from datetime import timedelta
 import logging
+import random
 
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
@@ -32,6 +33,21 @@ OPENWEATHERMAP_API_KEY = '47c1704ee6778aef7c1fcb71e597208c'
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
 db = SQLAlchemy(app)
 
+fake_ip_addresses = ['192.0.2.1',
+                     '192.0.2.2',
+                     '192.0.2.3',
+                     '192.0.2.4',
+                     '192.0.2.5',
+                     '192.0.2.6',
+                     '192.0.2.7',
+                     '192.0.2.8',
+                     '192.0.2.9',
+                     '192.0.2.10',
+                     '192.0.2.11',
+                     '192.0.2.12',
+                     '192.0.2.13',
+                     '192.0.2.14'
+                     ]
 
 class WeatherRequests(db.Model):
     __tablename__ = "weather_requests"
@@ -42,10 +58,11 @@ class WeatherRequests(db.Model):
     ip_address = db.Column(db.String(50))
     created_at = db.Column(db.DateTime())
 
-    def __init__(self, zip_code, temperature, location, created_at):
+    def __init__(self, zip_code, temperature, location, created_at, ip_address):
         self.zip_code = zip_code
         self.temperature = temperature
-        self.location = location
+        self.location = location,
+        self.ip_address =
         self.created_at = created_at
 
     def __repr__(self):
@@ -159,7 +176,8 @@ def get_temperature():
                     current_temp = get_location_temperature(zip_code)
                     current_time = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
                     location = address_dict['city'] + ',' + address_dict['state']
-                    w_req = WeatherRequests(zip_code, current_temp, location, current_time)
+                    w_req = WeatherRequests(zip_code, current_temp, location,
+                                            random.choice(fake_ip_addresses),current_time)
                     db.session.add(w_req)
                     db.session.commit()
 
@@ -184,7 +202,8 @@ def get_temperature():
 
 def track_request_ip_address():
     current_time = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
-    _req_tracker = WeatherRequestsTracker(request.remote_addr, current_time)
+    # request.remote_addr
+    _req_tracker = WeatherRequestsTracker(random.choice(fake_ip_addresses), current_time)
     db.session.add(_req_tracker)
     db.session.commit()
 
