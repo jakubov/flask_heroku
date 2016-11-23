@@ -207,10 +207,10 @@ def get_temperature():
 def get_ip_address_app_usage():
     temperature_response = {}
     usage_list = []
-    usage_dict = {}
+
     for result in db.session.query(WeatherRequestsTracker).all():
         _res = result.__dict__
-
+        usage_dict = {}
         usage_dict['ip_address'] = _res['ip_address']
         usage_dict['created_at'] = str(_res['created_at'])
         usage_list.append(usage_dict)
