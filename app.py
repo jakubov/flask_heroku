@@ -62,7 +62,7 @@ class WeatherRequests(db.Model):
         self.zip_code = zip_code
         self.temperature = temperature
         self.location = location,
-        self.ip_address =
+        self.ip_address = ip_address,
         self.created_at = created_at
 
     def __repr__(self):
