@@ -203,21 +203,28 @@ def get_temperature():
         return temperature_response
 
 
-@app.route('/api/usage/', methods=["GET"])
-def get_ip_address_app_usage():
+@app.route('/api/usage/<ip_address>', methods=["GET"])
+def get_ip_address_app_usage(ip_address):
     temperature_response = {}
     usage_list = []
+    if ip_address is None:
+        for result in db.session.query(WeatherRequestsTracker).all():
+            _res = result.__dict__
+            usage_dict = {}
+            usage_dict['ip_address'] = _res['ip_address']
+            usage_dict['created_at'] = str(_res['created_at'])
+            usage_list.append(usage_dict)
 
-    for result in db.session.query(WeatherRequestsTracker).all():
-        _res = result.__dict__
+        temperature_response['data'] = usage_list
+        temperature_response['total'] = len(usage_list)
+        return jsonify(temperature_response)
+    else:
+        count = db.session.query(WeatherRequestsTracker).filter(WeatherRequestsTracker.ip_address == ip_address).count()
         usage_dict = {}
-        usage_dict['ip_address'] = _res['ip_address']
-        usage_dict['created_at'] = str(_res['created_at'])
-        usage_list.append(usage_dict)
-
-    temperature_response['data'] = usage_list
-    temperature_response['total'] = len(usage_list)
-    return jsonify(temperature_response)
+        usage_dict['ip_address'] = ip_address
+        usage_dict['total'] = str(count)
+        temperature_response['data'] = usage_dict
+        return jsonify(temperature_response)
 
 
 def track_request_ip_address():
