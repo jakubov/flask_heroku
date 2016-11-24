@@ -154,8 +154,7 @@ def get_temperature():
             address_data = get_address_zipcode(address)
 
         if address_data:
-            # to keep the UI/app simple, will only handle query that
-            # return single address
+            # to keep the UI/app simple, will only handle query that return single address
             if len(address_data) == 1:
                 address_dict = address_data[0]
                 zip_code = address_dict['zip_code']
@@ -170,12 +169,11 @@ def get_temperature():
 
                     current_time = datetime.datetime.utcnow()
                     created_at = \
-                        datetime.datetime.strptime(str(res.created_at),
-                                                   '%Y-%m-%d %H:%M:%S')
+                        datetime.datetime.strptime(str(res.created_at), '%Y-%m-%d %H:%M:%S')
                     diff = current_time - created_at
+                    # zip code exists but 1 hour passed since last read - get updated current temperature
                     if diff > timedelta(minutes=60):
-                        # zip codes exists but an hour lapsed - get updated
-                        # current temp
+
                         current_temp = get_location_temperature(zip_code)
                         current_time = \
                             datetime.datetime.utcnow().\
@@ -185,13 +183,10 @@ def get_temperature():
                         res.created_at = current_time
                         db.session.commit()
 
-                    address_dict['temp'] = current_temp
-                    temperature_response['data'] = address_dict
-                    temperature_response['status'] = 'success'
-                    return json.dumps(temperature_response)
-                    # resp = jsonify(temperature_response)
-                    # resp.status_code = 200
-                    # return resp
+                    # address_dict['temp'] = current_temp
+                    # temperature_response['data'] = address_dict
+                    # temperature_response['status'] = 'success'
+                    # return json.dumps(temperature_response)
                 else:
                     current_temp = get_location_temperature(zip_code)
                     current_time = \
@@ -204,33 +199,24 @@ def get_temperature():
                     db.session.add(w_req)
                     db.session.commit()
 
-                    address_dict['temp'] = current_temp
-                    temperature_response['data'] = address_dict
-                    temperature_response['status'] = 'success'
-                    return json.dumps(temperature_response)
+                address_dict['temp'] = current_temp
+                temperature_response['data'] = address_dict
+                temperature_response['status'] = 'success'
+                return json.dumps(temperature_response)
             else:
                 # result returned multiple addresses, tell user to
                 # modify search
                 temperature_response['status'] = 'failure'
                 temperature_response['reason'] = 'found multiple locations'
                 return json.dumps(temperature_response)
-                # resp = jsonify(temperature_response)
-                # resp.status_code = 200
-                # return resp
         else:
             temperature_response['status'] = 'failure'
             temperature_response['reason'] = 'no results found'
             return json.dumps(temperature_response)
-            # resp = jsonify(temperature_response)
-            # resp.status_code = 200
-            # return resp
     else:
         temperature_response['status'] = 'failure'
         temperature_response['reason'] = 'invalid query'
         return json.dumps(temperature_response)
-        # resp = jsonify(temperature_response)
-        # resp.status_code = 200
-        # return resp
 
 
 def track_request():
