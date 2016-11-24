@@ -208,9 +208,6 @@ def get_temperature():
                     temperature_response['data'] = address_dict
                     temperature_response['status'] = 'success'
                     return json.dumps(temperature_response)
-                    # resp = jsonify(temperature_response)
-                    # resp.status_code = 200
-                    # return resp
             else:
                 # result returned multiple addresses, tell user to
                 # modify search
@@ -274,8 +271,10 @@ def get_all_ip_addresses_app_usage():
         usage_response['data'] = usage_list
         usage_response['total_ip_addresses'] = len(usage_list)
         usage_response['total_hits'] = total_hits
+        usage_response['status'] = 'success'
     else:
-        usage_response['error'] = 'no data found'
+        usage_response['status'] = 'failure'
+        usage_response['reason'] = 'no data found'
 
     # for plain json response just
     # return jsonify(usage_response)
@@ -305,7 +304,8 @@ def get_ip_address_app_usage(ip_address):
             usage_list.append(usage_dict)
             usage_response['data'] = usage_list
         else:
-            usage_response['error'] = 'no data found for {}'.format(ip_address)
+            usage_response['status'] = 'failure'
+            usage_response['reason'] = 'no data found'
 
     # return jsonify(temperature_response)
 
