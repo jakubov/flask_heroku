@@ -20,7 +20,8 @@
                         ".com/api/temperature/?query=";
             }
             $.ajax({url: base_url + address, success: function(result){
-                var obj = JSON.parse(result);
+{#                var obj = JSON.parse(result);#}
+                var obj = result;
                 if (obj['status'] == 'success') {
                     temperture = obj['data']['temp']
                     city = obj['data']['city']
