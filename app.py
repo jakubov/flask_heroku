@@ -33,10 +33,11 @@ GOOGLE_MAPS_API_BASE_URL = 'https://maps.googleapis.com/maps/api/geocode/json'
 OPENWEATHERMAP_BASE_URL = 'http://api.openweathermap.org/data/2.5/weather'
 OPENWEATHERMAP_API_KEY = '47c1704ee6778aef7c1fcb71e597208c'
 
-if platform.node() == 'RobMacBookPro.local':
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://jgqpxwfuolaabl:RXFtkY90O909yKfEnOE8VmMBoq@ec2-54-243-204-86.compute-1.amazonaws.com:5432/dmg8aom1sv68k'
-else:
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
+# if platform.node() == 'RobMacBookPro.local':
+#     app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://jgqpxwfuolaabl:RXFtkY90O909yKfEnOE8VmMBoq@ec2-54-243-204-86.compute-1.amazonaws.com:5432/dmg8aom1sv68k'
+# else:
+    
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
 
 db = SQLAlchemy(app)
 
