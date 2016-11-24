@@ -34,10 +34,9 @@ OPENWEATHERMAP_BASE_URL = 'http://api.openweathermap.org/data/2.5/weather'
 OPENWEATHERMAP_API_KEY = '47c1704ee6778aef7c1fcb71e597208c'
 
 # if platform.node() == 'RobMacBookPro.local':
-#     app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://jgqpxwfuolaabl:RXFtkY90O909yKfEnOE8VmMBoq@ec2-54-243-204-86.compute-1.amazonaws.com:5432/dmg8aom1sv68k'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://jgqpxwfuolaabl:RXFtkY90O909yKfEnOE8VmMBoq@ec2-54-243-204-86.compute-1.amazonaws.com:5432/dmg8aom1sv68k'
 # else:
-    
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
+#     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
 
 db = SQLAlchemy(app)
 
@@ -142,9 +141,10 @@ def get_temperature():
                 address_dict['temp'] = current_temp
                 temperature_response['data'] = address_dict
                 temperature_response['status'] = 'success'
-                resp = jsonify(temperature_response)
-                resp.status_code = 200
-                return resp
+                return json.dumps(temperature_response)
+                # resp = jsonify(temperature_response)
+                # resp.status_code = 200
+                # return resp
             else:
                 # do an address-zip code lookup
                 address_data = get_address_zipcode(zip_code)
@@ -188,9 +188,10 @@ def get_temperature():
                     address_dict['temp'] = current_temp
                     temperature_response['data'] = address_dict
                     temperature_response['status'] = 'success'
-                    resp = jsonify(temperature_response)
-                    resp.status_code = 200
-                    return resp
+                    return json.dumps(temperature_response)
+                    # resp = jsonify(temperature_response)
+                    # resp.status_code = 200
+                    # return resp
                 else:
                     current_temp = get_location_temperature(zip_code)
                     current_time = \
@@ -206,9 +207,10 @@ def get_temperature():
                     address_dict['temp'] = current_temp
                     temperature_response['data'] = address_dict
                     temperature_response['status'] = 'success'
-                    resp = jsonify(temperature_response)
-                    resp.status_code = 200
-                    return resp
+                    return json.dumps(temperature_response)
+                    # resp = jsonify(temperature_response)
+                    # resp.status_code = 200
+                    # return resp
             else:
                 # result returned multiple addresses, tell user to
                 # modify search
