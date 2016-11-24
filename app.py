@@ -12,7 +12,8 @@ from datetime import timedelta
 import logging
 import random
 
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask import Flask, render_template, request, redirect, url_for, \
+    jsonify, Response
 from flask_sqlalchemy import SQLAlchemy
 
 
@@ -21,7 +22,8 @@ app = Flask(__name__)
 app.logger.addHandler(logging.StreamHandler(sys.stdout))
 app.logger.setLevel(logging.INFO)
 
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'this_should_be_configured')
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY',
+                                          'this_should_be_configured')
 
 
 GOOGLE_MAPS_API_KEY = 'AIzaSyC6bDMjMQNBGGu_FS95DUpXNC4ppyxWhug'
@@ -59,7 +61,8 @@ class WeatherRequests(db.Model):
     ip_address = db.Column(db.String(50))
     created_at = db.Column(db.DateTime())
 
-    def __init__(self, zip_code, temperature, location, ip_address, created_at):
+    def __init__(self, zip_code, temperature, location,
+                 ip_address, created_at):
         self.zip_code = zip_code
         self.temperature = temperature
         self.location = location,
@@ -72,16 +75,16 @@ class WeatherRequests(db.Model):
 
 class WeatherRequestsTracker(db.Model):
     __tablename__ = "weather_requests_ip_tracker"
-    id = db.Column(db.Integer, primary_key=True)
-    ip_address = db.Column(db.String(50))
-    created_at = db.Column(db.DateTime())
+    ip_address = db.Column(db.Integer, primary_key=True)
+    hit_count = db.Column(db.DateTime())
 
-    def __init__(self, ip_address, created_at):
+    def __init__(self, ip_address, hit_count):
         self.ip_address = ip_address
-        self.created_at = created_at
+        self.hit_count = hit_count
 
     def __repr__(self):
         return '<ip_address %r>' % self.ip_address
+
 
 @app.route('/')
 def home():
@@ -91,13 +94,12 @@ def home():
 @app.route('/api/temperature/', methods=["GET"])
 def get_temperature():
     temperature_response = {}
-    if request.query_string:
-        track_request_ip_address()
-        address = request.query_string.strip()
+    _query_str = request.args.get('query')
+    if _query_str:
+        track_request()
+        address = _query_str.strip()
         logging.info('*** got address {}'.format(address))
         address_dict = {}
-        zip_code = None
-        address_data = None
 
         # parse search string for a zip code
         reg = re.compile('\d{5}')
@@ -106,7 +108,9 @@ def get_temperature():
             zip_code = regex_result[0]
 
             # first to a table look up for the zip code
-            res = db.session.query(WeatherRequests).filter(WeatherRequests.zip_code == zip_code).first()
+            res = \
+                db.session.query(WeatherRequests).\
+                filter(WeatherRequests.zip_code == zip_code).first()
             if res:
                 current_temp = res.temperature
                 location = res.location.split(',')
@@ -114,9 +118,12 @@ def get_temperature():
                 address_dict['state'] = location[1]
 
                 current_time = datetime.datetime.utcnow()
-                created_at = datetime.datetime.strptime(str(res.created_at), '%Y-%m-%d %H:%M:%S')
+                created_at = \
+                    datetime.datetime.strptime(str(res.created_at),
+                                               '%Y-%m-%d %H:%M:%S')
                 diff = current_time - created_at
-                # if request was made less than 1 hour, then return the temperature
+                # if request was made less than 1 hour, then return the
+                # temperature
                 if diff < timedelta(minutes=60):
                     address_dict['temp'] = current_temp
                     temperature_response['data'] = address_dict
@@ -125,7 +132,8 @@ def get_temperature():
                 else:
                     # else get updated temperature
                     current_temp = get_location_temperature(zip_code)
-                    current_time = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+                    current_time = \
+                        datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
 
                     res.temperature = current_temp
                     res.created_at = current_time
@@ -139,15 +147,19 @@ def get_temperature():
                 # do an address-zip code lookup
                 address_data = get_address_zipcode(zip_code)
         else:
-            # query string does not contain a zip code, so do an address-zip code lookup
+            # query string does not contain a zip code, so do an
+            # address-zip_code lookup
             address_data = get_address_zipcode(address)
 
         if address_data:
-            # to keep the UI and app simple, will only handle query that return single address
+            # to keep the UI/app simple, will only handle query that
+            # return single address
             if len(address_data) == 1:
                 address_dict = address_data[0]
                 zip_code = address_dict['zip_code']
-                res = db.session.query(WeatherRequests).filter(WeatherRequests.zip_code == zip_code).first()
+                res = \
+                    db.session.query(WeatherRequests).\
+                    filter(WeatherRequests.zip_code == zip_code).first()
                 if res:
                     current_temp = res.temperature
                     location = res.location.split(',')
@@ -155,7 +167,9 @@ def get_temperature():
                     address_dict['state'] = location[1]
 
                     current_time = datetime.datetime.utcnow()
-                    created_at = datetime.datetime.strptime(str(res.created_at), '%Y-%m-%d %H:%M:%S')
+                    created_at = \
+                        datetime.datetime.strptime(str(res.created_at),
+                                                   '%Y-%m-%d %H:%M:%S')
                     diff = current_time - created_at
                     if diff < timedelta(minutes=60):
                         address_dict['temp'] = current_temp
@@ -163,9 +177,12 @@ def get_temperature():
                         temperature_response['status'] = 'success'
                         return json.dumps(temperature_response)
                     else:
-                        # zip codes exists but an hour lapsed - get updated current temp
+                        # zip codes exists but an hour lapsed - get updated
+                        # current temp
                         current_temp = get_location_temperature(zip_code)
-                        current_time = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+                        current_time = \
+                            datetime.datetime.utcnow().\
+                            strftime('%Y-%m-%d %H:%M:%S')
 
                         res.temperature = current_temp
                         res.created_at = current_time
@@ -177,10 +194,13 @@ def get_temperature():
                         return json.dumps(temperature_response)
                 else:
                     current_temp = get_location_temperature(zip_code)
-                    current_time = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
-                    location = address_dict['city'] + ',' + address_dict['state']
+                    current_time = \
+                        datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+                    location = \
+                        address_dict['city'] + ',' + address_dict['state']
                     w_req = WeatherRequests(zip_code, current_temp, location,
-                                            random.choice(fake_ip_addresses), current_time)
+                                            random.choice(fake_ip_addresses),
+                                            current_time)
                     db.session.add(w_req)
                     db.session.commit()
 
@@ -189,7 +209,8 @@ def get_temperature():
                     temperature_response['status'] = 'success'
                     return json.dumps(temperature_response)
             else:
-                # result returned multiple addresses, tell user to modify search
+                # result returned multiple addresses, tell user to
+                # modify search
                 temperature_response['status'] = 'failure'
                 temperature_response['reason'] = 'found multiple locations'
                 return json.dumps(temperature_response)
@@ -203,67 +224,84 @@ def get_temperature():
         return temperature_response
 
 
+def track_request():
+        # use fake ip_address to make data more interesting,
+        # otherwise remote_addr should be used to track the real ip address
+
+        # ip_address = request.remote_addr
+        ip_address = random.choice(fake_ip_addresses)
+        hit_count = 1
+        result = \
+            db.session.query(WeatherRequestsTracker).\
+            filter(WeatherRequestsTracker.ip_address == ip_address).first()
+        if result:
+            _res = result.__dict__
+            hit_count += _res['hit_count']
+            result.hit_count = hit_count
+        else:
+            req_track = WeatherRequestsTracker(ip_address, hit_count)
+            db.session.add(req_track)
+
+        db.session.commit()
+
+
 @app.route('/api/usage/', methods=["GET"])
 def get_all_ip_addresses_app_usage():
-    temperature_response = {}
+    usage_response = {}
     usage_list = []
-    total = 0
+    total_hits = 0
     for result in db.session.query(WeatherRequestsTracker).all():
         _res = result.__dict__
+        usage_dict = dict()
+        usage_dict['ip_address'] = _res['ip_address']
+        usage_dict['total_hits'] = _res['hit_count']
+        usage_list.append(usage_dict)
 
-        ip_address = _res['ip_address']
-        count = db.session.query(WeatherRequestsTracker).filter(
-            WeatherRequestsTracker.ip_address == ip_address).count()
-        usage_dict = {}
-        usage_dict['ip_address'] = ip_address
-        usage_dict['total'] = str(count)
-        if not any(d['ip_address'] == ip_address for d in usage_list):
-            total += count
-            usage_list.append(usage_dict)
+    usage_response['total_ip_addresses'] = len(usage_list)
+    usage_response['total_hits'] = total_hits
 
-    temperature_response['data'] = usage_list
-    temperature_response['total'] = total
-    return jsonify(temperature_response)
+    # for plain json response
+    # return jsonify(usage_response)
+
+    _json = json.dumps(usage_response, indent=4, sort_keys=True)
+    return Response(
+        _json,
+        mimetype="application/json",
+        headers={"Content-disposition":
+                 "attachment; filename=usage_by_ip_address.json"})
 
 
 @app.route('/api/usage/<ip_address>', methods=["GET"])
 def get_ip_address_app_usage(ip_address):
-    temperature_response = {}
+    usage_response = {}
     usage_list = []
-    if ip_address is None:
-        for result in db.session.query(WeatherRequestsTracker).all():
+    if ip_address:
+        result = \
+            db.session.\
+            query(WeatherRequestsTracker).\
+            filter(WeatherRequestsTracker.ip_address == ip_address).first()
+        if result:
             _res = result.__dict__
-            ip_address = _res['ip_address']
-            count = db.session.query(WeatherRequestsTracker).filter(
-                WeatherRequestsTracker.ip_address == ip_address).count()
-
-            usage_dict = {}
+            usage_dict = dict()
             usage_dict['ip_address'] = _res['ip_address']
-            usage_dict['total'] = str(count)
+            usage_dict['total_hits'] = _res['hit_count']
             usage_list.append(usage_dict)
 
-        temperature_response['data'] = usage_list
-        temperature_response['total'] = len(usage_list)
-        return jsonify(temperature_response)
-    else:
-        count = db.session.query(WeatherRequestsTracker).filter(WeatherRequestsTracker.ip_address == ip_address).count()
-        usage_dict = {}
-        usage_dict['ip_address'] = ip_address
-        usage_dict['total'] = str(count)
-        temperature_response['data'] = usage_dict
-        return jsonify(temperature_response)
+        usage_response['data'] = usage_list
 
+    # return jsonify(temperature_response)
 
-def track_request_ip_address():
-    current_time = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
-    # request.remote_addr
-    _req_tracker = WeatherRequestsTracker(random.choice(fake_ip_addresses), current_time)
-    db.session.add(_req_tracker)
-    db.session.commit()
+    _json = json.dumps(usage_response, indent=4, sort_keys=True)
+    return Response(
+        _json,
+        mimetype="application/json",
+        headers={"Content-disposition":
+                 "attachment; filename=usage_all_ip.json"})
 
 
 def get_address_zipcode(address):
-    url = GOOGLE_MAPS_API_BASE_URL + '?address=' + address + '&key=' + GOOGLE_MAPS_API_KEY
+    url = GOOGLE_MAPS_API_BASE_URL + '?address=' + address + \
+          '&key=' + GOOGLE_MAPS_API_KEY
     r = requests.get(url)
     json_results = r.json()
     address_payload = []
@@ -297,7 +335,8 @@ def get_address_zipcode(address):
 
 
 def get_location_temperature(zip_code):
-    url = OPENWEATHERMAP_BASE_URL + '?zip=' + zip_code + ', us' + '&appid=' + OPENWEATHERMAP_API_KEY
+    url = OPENWEATHERMAP_BASE_URL + '?zip=' + zip_code + ', us' + \
+          '&appid=' + OPENWEATHERMAP_API_KEY
     r = requests.get(url)
     json_results = r.json()
     temp = json_results['main']['temp']

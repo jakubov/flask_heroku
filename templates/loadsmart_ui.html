@@ -3,22 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <title>Loadsmart Weather App</title>
-
-
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
     <script>
     $(document).ready(function(){
         $("button").click(function(){
             var address = $( "#address" ).val();
             var base_url = location.hostname;
             if (base_url == 'localhost'){
-                base_url = "http://localhost:5000/api/temperature/?";
+                base_url = "http://localhost:5000/api/temperature/?query=";
             }
             else{
-                base_url = "https://obscure-cove-65098.herokuapp.com/api/temperature/?";
+                base_url = "https://obscure-cove-65098.herokuapp" +
+                        ".com/api/temperature/?query=";
             }
             $.ajax({url: base_url + address, success: function(result){
                 var obj = JSON.parse(result);
@@ -48,18 +47,14 @@
             font-family: Arial, Helvetica, sans-serif;
         }
     </style>
-
 </head>
 <body>
-
-
 <div class="container">
 <br>
 <div>
 <a href="https://loadsmart.com/"><img src="/static/loadsmartV2.svg" class="img-responsive" width="150" height="75">On-demand Truckload Shipping </a>
 </div>
 <div id="div_0"><h2 class="sansserif">Loadsmart Weather</h2></div>
-
 <div class="container">
     <div class="col-xs-6">
         <input class="form-control" id="address" type="text" placeholder="Enter an Address">

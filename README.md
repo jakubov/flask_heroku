@@ -3,6 +3,18 @@ Loadsmart coding challenge
 
 api endpoint:
 
+  GET https://obscure-cove-65098.herokuapp.com/api/temperature/?query=<address>
+
+e.g:
+
+  curl -H "Content-type: application/json" -X GET https://obscure-cove-65098.herokuapp.com/api/temperature/?query=10013
+  or
+  curl -H "Content-type: application/json" -G -v "https://obscure-cove-65098.herokuapp.com/api/temperature" --data-urlencode "query=39 wooster st new york"
+
+response:
+
+  {"status": "success", "data": {"state": "NY", "city": "New York", "temp":39}}
+
 
 
 Database:
