@@ -288,8 +288,10 @@ def get_ip_address_app_usage(ip_address):
             usage_dict['ip_address'] = _res['ip_address']
             usage_dict['total_hits'] = _res['hit_count']
             usage_list.append(usage_dict)
+            usage_response['data'] = usage_list
+        else:
+            usage_response['data'] = 'no data found for {}'.format(ip_address)
 
-        usage_response['data'] = usage_list
 
     # return jsonify(temperature_response)
 
