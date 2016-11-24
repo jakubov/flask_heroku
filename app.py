@@ -213,21 +213,24 @@ def get_temperature():
                 # modify search
                 temperature_response['status'] = 'failure'
                 temperature_response['reason'] = 'found multiple locations'
-                resp = jsonify(temperature_response)
-                resp.status_code = 200
-                return resp
+                return json.dumps(temperature_response)
+                # resp = jsonify(temperature_response)
+                # resp.status_code = 200
+                # return resp
         else:
             temperature_response['status'] = 'failure'
             temperature_response['reason'] = 'no results found'
-            resp = jsonify(temperature_response)
-            resp.status_code = 200
-            return resp
+            return json.dumps(temperature_response)
+            # resp = jsonify(temperature_response)
+            # resp.status_code = 200
+            # return resp
     else:
         temperature_response['status'] = 'failure'
         temperature_response['reason'] = 'invalid query'
-        resp = jsonify(temperature_response)
-        resp.status_code = 200
-        return resp
+        return json.dumps(temperature_response)
+        # resp = jsonify(temperature_response)
+        # resp.status_code = 200
+        # return resp
 
 
 def track_request():
