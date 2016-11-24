@@ -268,7 +268,7 @@ def get_all_ip_addresses_app_usage():
         _json,
         mimetype="application/json",
         headers={"Content-disposition":
-                 "attachment; filename=usage_by_ip_address.json"})
+                 "attachment; filename=usage_all_ip_addresses.json"})
 
 
 @app.route('/api/usage/<ip_address>', methods=["GET"])
@@ -296,7 +296,7 @@ def get_ip_address_app_usage(ip_address):
         _json,
         mimetype="application/json",
         headers={"Content-disposition":
-                 "attachment; filename=usage_all_ip.json"})
+                 "attachment; filename=usage_by_ip_address.json"})
 
 
 def get_address_zipcode(address):
