@@ -19,7 +19,9 @@
                 base_url = "https://obscure-cove-65098.herokuapp" +
                         ".com/api/temperature/?query=";
             }
-            $.ajax({url: base_url + address, success: function(result){
+            $.ajax({url: base_url + address, crossDomain: true, headers: {
+                    'Access-Control-Allow-Origin': '*' },
+                    dataType: 'json', success: function(result){
 {#                var obj = JSON.parse(result);#}
                 var obj = result;
                 if (obj['status'] == 'success') {
