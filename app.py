@@ -11,6 +11,7 @@ import datetime
 from datetime import timedelta
 import logging
 import random
+import platform
 
 from flask import Flask, render_template, request, redirect, url_for, \
     jsonify, Response
@@ -32,9 +33,11 @@ GOOGLE_MAPS_API_BASE_URL = 'https://maps.googleapis.com/maps/api/geocode/json'
 OPENWEATHERMAP_BASE_URL = 'http://api.openweathermap.org/data/2.5/weather'
 OPENWEATHERMAP_API_KEY = '47c1704ee6778aef7c1fcb71e597208c'
 
-print os.environ.get('DATABASE_URL')
-print os.environ['DATABASE_URL']
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
+if platform.node() == 'RobMacBookPro.local':
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://jgqpxwfuolaabl:RXFtkY90O909yKfEnOE8VmMBoq@ec2-54-243-204-86.compute-1.amazonaws.com:5432/dmg8aom1sv68k'
+else:
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
+
 db = SQLAlchemy(app)
 
 fake_ip_addresses = ['192.0.2.1',
@@ -126,25 +129,21 @@ def get_temperature():
                 diff = current_time - created_at
                 # if request was made less than 1 hour, then return the
                 # temperature
-                if diff < timedelta(minutes=60):
-                    address_dict['temp'] = current_temp
-                    temperature_response['data'] = address_dict
-                    temperature_response['status'] = 'success'
-                    return json.dumps(temperature_response)
-                else:
-                    # else get updated temperature
+                if diff > timedelta(minutes=60):
+                    # get updated temperature
                     current_temp = get_location_temperature(zip_code)
                     current_time = \
                         datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
-
                     res.temperature = current_temp
                     res.created_at = current_time
                     db.session.commit()
 
-                    address_dict['temp'] = current_temp
-                    temperature_response['data'] = address_dict
-                    temperature_response['status'] = 'success'
-                    return json.dumps(temperature_response)
+                address_dict['temp'] = current_temp
+                temperature_response['data'] = address_dict
+                temperature_response['status'] = 'success'
+                resp = jsonify(temperature_response)
+                resp.status_code = 200
+                return resp
             else:
                 # do an address-zip code lookup
                 address_data = get_address_zipcode(zip_code)
@@ -173,14 +172,7 @@ def get_temperature():
                         datetime.datetime.strptime(str(res.created_at),
                                                    '%Y-%m-%d %H:%M:%S')
                     diff = current_time - created_at
-                    if diff < timedelta(minutes=60):
-                        address_dict['temp'] = current_temp
-                        temperature_response['data'] = address_dict
-                        temperature_response['status'] = 'success'
-                        resp = json.dumps(temperature_response)
-                        resp.status_code = 200
-                        return resp
-                    else:
+                    if diff > timedelta(minutes=60):
                         # zip codes exists but an hour lapsed - get updated
                         # current temp
                         current_temp = get_location_temperature(zip_code)
@@ -192,12 +184,12 @@ def get_temperature():
                         res.created_at = current_time
                         db.session.commit()
 
-                        address_dict['temp'] = current_temp
-                        temperature_response['data'] = address_dict
-                        temperature_response['status'] = 'success'
-                        resp = json.dumps(temperature_response)
-                        resp.status_code = 200
-                        return resp
+                    address_dict['temp'] = current_temp
+                    temperature_response['data'] = address_dict
+                    temperature_response['status'] = 'success'
+                    resp = jsonify(temperature_response)
+                    resp.status_code = 200
+                    return resp
                 else:
                     current_temp = get_location_temperature(zip_code)
                     current_time = \
@@ -213,7 +205,7 @@ def get_temperature():
                     address_dict['temp'] = current_temp
                     temperature_response['data'] = address_dict
                     temperature_response['status'] = 'success'
-                    resp = json.dumps(temperature_response)
+                    resp = jsonify(temperature_response)
                     resp.status_code = 200
                     return resp
             else:
@@ -221,15 +213,21 @@ def get_temperature():
                 # modify search
                 temperature_response['status'] = 'failure'
                 temperature_response['reason'] = 'found multiple locations'
-                return json.dumps(temperature_response)
+                resp = jsonify(temperature_response)
+                resp.status_code = 200
+                return resp
         else:
             temperature_response['status'] = 'failure'
             temperature_response['reason'] = 'no results found'
-            return json.dumps(temperature_response)
+            resp = jsonify(temperature_response)
+            resp.status_code = 200
+            return resp
     else:
         temperature_response['status'] = 'failure'
         temperature_response['reason'] = 'invalid query'
-        return temperature_response
+        resp = jsonify(temperature_response)
+        resp.status_code = 200
+        return resp
 
 
 def track_request():
@@ -239,18 +237,21 @@ def track_request():
         # ip_address = request.remote_addr
         ip_address = random.choice(fake_ip_addresses)
         hit_count = 1
-        result = \
-            db.session.query(WeatherRequestsTracker).\
-            filter(WeatherRequestsTracker.ip_address == ip_address).first()
-        if result:
-            _res = result.__dict__
-            hit_count += _res['hit_count']
-            result.hit_count = hit_count
-        else:
-            req_track = WeatherRequestsTracker(ip_address, hit_count)
-            db.session.add(req_track)
+        try:
+            result = \
+                db.session.query(WeatherRequestsTracker).\
+                filter(WeatherRequestsTracker.ip_address == ip_address).first()
+            if result:
+                _res = result.__dict__
+                hit_count += _res['hit_count']
+                result.hit_count = hit_count
+            else:
+                req_track = WeatherRequestsTracker(ip_address, hit_count)
+                db.session.add(req_track)
 
-        db.session.commit()
+            db.session.commit()
+        except Exception as e:
+            logging.error(e.message)
 
 
 @app.route('/api/usage/', methods=["GET"])
@@ -353,9 +354,9 @@ def get_location_temperature(zip_code):
           '&appid=' + OPENWEATHERMAP_API_KEY
     r = requests.get(url)
     json_results = r.json()
-    temp = json_results['main']['temp']
-    temp = 9 / 5 * (int(temp) - 273) + 32
-    return temp
+    temperature = json_results['main']['temp']
+    temperature = 9 / 5 * (int(temperature) - 273) + 32
+    return temperature
 
 # @app.route('/')
 # def home():
@@ -376,10 +377,6 @@ def send_text_file(file_name):
 
 @app.after_request
 def add_header(response):
-    """
-    Add headers to both force latest IE rendering engine or Chrome Frame,
-    and also to cache the rendered page for 10 minutes.
-    """
     response.headers['X-UA-Compatible'] = 'IE=Edge,chrome=1'
     response.headers['Cache-Control'] = 'public, max-age=600'
     return response
