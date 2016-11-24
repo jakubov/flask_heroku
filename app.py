@@ -258,11 +258,14 @@ def get_all_ip_addresses_app_usage():
         usage_list.append(usage_dict)
         total_hits += _res['hit_count']
 
-    usage_response['data'] = usage_list
-    usage_response['total_ip_addresses'] = len(usage_list)
-    usage_response['total_hits'] = total_hits
+    if usage_list:
+        usage_response['data'] = usage_list
+        usage_response['total_ip_addresses'] = len(usage_list)
+        usage_response['total_hits'] = total_hits
+    else:
+        usage_response['error'] = 'no data found'
 
-    # for plain json response
+    # for plain json response just
     # return jsonify(usage_response)
 
     _json = json.dumps(usage_response, indent=4, sort_keys=True)
@@ -290,8 +293,7 @@ def get_ip_address_app_usage(ip_address):
             usage_list.append(usage_dict)
             usage_response['data'] = usage_list
         else:
-            usage_response['data'] = 'no data found for {}'.format(ip_address)
-
+            usage_response['error'] = 'no data found for {}'.format(ip_address)
 
     # return jsonify(temperature_response)
 
