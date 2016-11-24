@@ -36,7 +36,8 @@ Weather Queries:
 
 Usage Queries:
     Downloads a json file output (when run via browser) or json stdout (via curl) that
-    reports app usage.
+    reports app usage.  Please note that the api uses fake ip addresses generator to make the dataset usage more
+    'realistic' when testing (in live environment the fake ip generator should be replaced by request.remote_addr)
 
     Usage:
 
@@ -96,3 +97,7 @@ Database:
     obscure-cove-65098::DATABASE(>   ip_address varchar(50),
     obscure-cove-65098::DATABASE(>   created_at timestamp default current_timestamp
     obscure-cove-65098::DATABASE(> );
+
+
+Unit Tests:
+    All unit tests are in test.py
