@@ -11,10 +11,8 @@ import datetime
 from datetime import timedelta
 import logging
 import random
-import platform
 
-from flask import Flask, render_template, request, redirect, url_for, \
-    jsonify, Response
+from flask import Flask, render_template, request, Response
 from flask_sqlalchemy import SQLAlchemy
 
 
@@ -142,9 +140,6 @@ def get_temperature():
                 temperature_response['data'] = address_dict
                 temperature_response['status'] = 'success'
                 return json.dumps(temperature_response)
-                # resp = jsonify(temperature_response)
-                # resp.status_code = 200
-                # return resp
             else:
                 # do an address-zip code lookup
                 address_data = get_address_zipcode(zip_code)
@@ -154,7 +149,8 @@ def get_temperature():
             address_data = get_address_zipcode(address)
 
         if address_data:
-            # to keep the UI/app simple, will only handle query that return single address
+            # to keep the UI/app simple, will only handle query that
+            # return single address
             if len(address_data) == 1:
                 address_dict = address_data[0]
                 zip_code = address_dict['zip_code']
@@ -169,24 +165,18 @@ def get_temperature():
 
                     current_time = datetime.datetime.utcnow()
                     created_at = \
-                        datetime.datetime.strptime(str(res.created_at), '%Y-%m-%d %H:%M:%S')
+                        datetime.datetime.strptime(str(res.created_at),
+                                                   '%Y-%m-%d %H:%M:%S')
                     diff = current_time - created_at
-                    # zip code exists but 1 hour passed since last read - get updated current temperature
+                    # zip code exists but 1 hour passed since last read -
+                    # get updated current temperature
                     if diff > timedelta(minutes=60):
-
                         current_temp = get_location_temperature(zip_code)
-                        current_time = \
-                            datetime.datetime.utcnow().\
-                            strftime('%Y-%m-%d %H:%M:%S')
+                        current_time = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
 
                         res.temperature = current_temp
                         res.created_at = current_time
                         db.session.commit()
-
-                    # address_dict['temp'] = current_temp
-                    # temperature_response['data'] = address_dict
-                    # temperature_response['status'] = 'success'
-                    # return json.dumps(temperature_response)
                 else:
                     current_temp = get_location_temperature(zip_code)
                     current_time = \
@@ -220,8 +210,8 @@ def get_temperature():
 
 
 def track_request():
-        # use fake ip_address to make data more interesting,
-        # otherwise remote_addr should be used to track the real ip address
+        # using a fake ip_address to make data more interesting,
+        # otherwise remote_addr should be used to track the users real ip address
 
         # ip_address = request.remote_addr
         ip_address = random.choice(fake_ip_addresses)
@@ -265,9 +255,6 @@ def get_all_ip_addresses_app_usage():
         usage_response['status'] = 'failure'
         usage_response['reason'] = 'no data found'
 
-    # for plain json response just
-    # return jsonify(usage_response)
-
     _json = json.dumps(usage_response, indent=4, sort_keys=True)
     return Response(
         _json,
@@ -296,8 +283,6 @@ def get_ip_address_app_usage(ip_address):
         else:
             usage_response['status'] = 'failure'
             usage_response['reason'] = 'no data found'
-
-    # return jsonify(temperature_response)
 
     _json = json.dumps(usage_response, indent=4, sort_keys=True)
     return Response(
