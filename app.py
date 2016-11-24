@@ -341,7 +341,6 @@ def get_location_temperature(zip_code):
 #     """Render website's home page."""
 #     return render_template('home.html')
 
-
 ###
 # The functions below should be applicable to all Flask apps.
 ###
