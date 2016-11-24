@@ -32,6 +32,8 @@ GOOGLE_MAPS_API_BASE_URL = 'https://maps.googleapis.com/maps/api/geocode/json'
 OPENWEATHERMAP_BASE_URL = 'http://api.openweathermap.org/data/2.5/weather'
 OPENWEATHERMAP_API_KEY = '47c1704ee6778aef7c1fcb71e597208c'
 
+print os.environ.get('DATABASE_URL')
+print os.environ['DATABASE_URL']
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
 db = SQLAlchemy(app)
 
