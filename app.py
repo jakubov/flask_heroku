@@ -75,8 +75,8 @@ class WeatherRequests(db.Model):
 
 class WeatherRequestsTracker(db.Model):
     __tablename__ = "weather_requests_ip_tracker"
-    ip_address = db.Column(db.Integer, primary_key=True)
-    hit_count = db.Column(db.DateTime())
+    ip_address = db.Column(db.String(50), primary_key=True)
+    hit_count = db.Column(db.Integer())
 
     def __init__(self, ip_address, hit_count):
         self.ip_address = ip_address
