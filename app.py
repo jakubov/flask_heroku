@@ -175,7 +175,9 @@ def get_temperature():
                         address_dict['temp'] = current_temp
                         temperature_response['data'] = address_dict
                         temperature_response['status'] = 'success'
-                        return json.dumps(temperature_response)
+                        resp = json.dumps(temperature_response)
+                        resp.status_code = 200
+                        return resp
                     else:
                         # zip codes exists but an hour lapsed - get updated
                         # current temp
@@ -191,7 +193,9 @@ def get_temperature():
                         address_dict['temp'] = current_temp
                         temperature_response['data'] = address_dict
                         temperature_response['status'] = 'success'
-                        return json.dumps(temperature_response)
+                        resp = json.dumps(temperature_response)
+                        resp.status_code = 200
+                        return resp
                 else:
                     current_temp = get_location_temperature(zip_code)
                     current_time = \
@@ -207,7 +211,9 @@ def get_temperature():
                     address_dict['temp'] = current_temp
                     temperature_response['data'] = address_dict
                     temperature_response['status'] = 'success'
-                    return json.dumps(temperature_response)
+                    resp = json.dumps(temperature_response)
+                    resp.status_code = 200
+                    return resp
             else:
                 # result returned multiple addresses, tell user to
                 # modify search
